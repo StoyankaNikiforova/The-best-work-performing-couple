@@ -21,11 +21,11 @@ function get_file(){
       }
       const df = new FileReader();
       df.onload = (e) => {
-        var f = e.target.result; 
-        var lines = f.split(/[\r\n]+/g);
-        procesing_data = process_data(lines)
-        // console.log(procesing_data);
-        output.textContent = data_table(procesing_data);
+        var f = e.target.result;
+        var lines = (f.split(/[\r\n]+/g)).filter(Boolean);
+        procesing_data = process_data(lines);
+        console.log(procesing_data);
+        output.innerHTML = data_table(procesing_data);
         status.textContent = '';
       }
       df.readAsText(file);
