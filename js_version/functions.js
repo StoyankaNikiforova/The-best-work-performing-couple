@@ -20,7 +20,39 @@ function process_data(data_lines){
       }}
     }
 
-    return sorted_data_by_emp_couple
+    return sorted_data_by_emp_couple;
+}
+
+function get_total_days_by_coples(data){
+  var couples_days = [];
+  employee1 = data[0]['Employee ID #1'];
+  employee2 = data[0]['Employee ID #2'];
+  days_ = data[0]['Days worked'];
+  project =  data[0]['ProjectID'];
+  couples_days.push({"emps":[employee1, employee2], "days": days_, "projects":[project]});
+  for(cople=1; cople < data.length; cople++){
+    emp1 = data[cople]['Employee ID #1'];
+    emp2 = data[cople]['Employee ID #2'];
+    daysIn = data[cople]['Days worked'];
+    projectID = data[cople]['ProjectID'];
+    var coupleExist = false;
+    var currentCouple;
+    for(copleIn=0; copleIn < couples_days.length; copleIn++){
+      emps = couples_days[copleIn]["emps"];
+      if(emps.includes(emp1) && emps.includes(emp2)){
+        coupleExist = true;
+        currentCouple = couples_days[copleIn];
+      }
+    }
+    if(coupleExist){
+      currentCouple["days"]+= daysIn;
+      currentCouple["projects"].push(projectID);
+    }else{
+      couples_days.push({"emps": [emp1, emp2], "days": daysIn, "projects":[projectID]});
+    }
+
+  }
+  return couples_days;
 }
 
 function convert_date(date_string){
@@ -100,12 +132,7 @@ function data_table(procesing_data){
                         </thead>\
                         <tbody>'
       var len_data = procesing_data.length;
-      var best_couples ="";
-      var max_days = -1;
       for(var i=0; i< len_data; i++){
-            if(procesing_data[i]['Days worked'] > max_days){
-              max_days = procesing_data[i]['Days worked']
-            }
                 str_table += '<tr class="tb_row">\
                             <th scope="row">'+(i+1)+'</th>\
                             <td>'+procesing_data[i]['Employee ID #1']+'</td>\
@@ -114,16 +141,33 @@ function data_table(procesing_data){
                             <td>'+procesing_data[i]['Days worked']+'</td>\
                           </tr>'
     }
-    for(var i=0; i< len_data; i++){
-          if(procesing_data[i]['Days worked'] == max_days){
-            best_couples += "("+procesing_data[i]['Employee ID #1']+", "+procesing_data[i]['Employee ID #2']+")"
+    var total_days = get_total_days_by_coples(procesing_data);
+    var best_couples = [];
+    var max_days = -1;
+    for(var i=0; i < total_days.length; i++){
+          if(total_days[i]['days'] > max_days){
+            max_days = total_days[i]['days'];
+          }
+      }
+    for(var i=0; i< total_days.length; i++){
+          if(total_days[i]['days'] == max_days){
+            best_couples.push({"couple": [total_days[i]['emps'][0], total_days[i]['emps'][1]], "projects":total_days[i]['projects']})
           }
         }
 
-    str_table += '<tr class="bg-primary">\
-                <td colspan="4">The best couple(s) are '+best_couples+'  with:</td>\
-                <td>'+max_days+' days!</td>\
+    str_table += '<tr class="bg-primary result">\
+                <td colspan="4">The best performing couple(s) is(are):</td>\
+                <td>Total days</td>\
               </tr>'
+      for(var i=0; i< best_couples.length; i++){
+              str_table += '<tr class="tb_row">\
+                          <th scope="row">'+(i+1)+'</th>\
+                          <td>'+best_couples[i]['couple'][0]+'</td>\
+                          <td>'+best_couples[i]['couple'][1]+'</td>\
+                          <td>'+(best_couples[i]['projects']).toString()+'</td>\
+                          <td>'+max_days+'</td>\
+                        </tr>'
+          }
     str_table += '</tbody>\
             </table>'
 
