@@ -1,25 +1,23 @@
 import datetime
 import re
-from dateutil.parser import parse
-import json
 from operator import itemgetter
 from os import strerror
 
 
 def get_data_from_file(url_str):
-    date_now = (datetime.datetime.now()).strftime('%Y-%m-%d')
     data_input = []
     try:
     	text_list = open(url_str, 'r')
     	for line in text_list:
-            line_str = re.sub('NULL', date_now, line)
-            data_input.append((re.sub("\n|\ufeff", "", line_str)).split(', '))
+            valid_line = validate_line(line)
+            if(valid_line):
+                data_input.append(valid_line)
     except IOError as e:
     	print("I/O error occurred: ", strerr(e.errno))
     data = [x for x in data_input if x != ['']]
     return data
 
-#връща списък от реюници с двойки служители работили по общ проект и броя на дните за всяка двойка
+#връща списък от речници с двойки служители работили по общ проект и броя на дните за всяка двойка
 #returns a list of dictionaries with Employee couples worked on a common project
 #includng the total number of the working days for each couple
 def process_data(file_path):
@@ -32,10 +30,11 @@ def process_data(file_path):
         emp = input_data[i]
         for j in range(i+1, len_data):
             current_emp = input_data[j]
-            emp_start = convert_date(emp[2])
-            emp_end = convert_date(emp[3])
-            current_emp_start = convert_date(current_emp[2])
-            current_emp_end = convert_date(current_emp[3])
+            emp_start = emp[2]
+            emp_end = emp[3]
+            current_emp_start = current_emp[2]
+            current_emp_end = current_emp[3]
+
             #проверка дали двама служители имат общ проект и дали u двамата са работили по него в общ период
             #check if two Employees have a common project and both have work on it
             if (emp[1] == current_emp[1]) and (is_there_common_period(emp_start, emp_end, current_emp_start, current_emp_end)):
@@ -53,8 +52,66 @@ def process_data(file_path):
     return sorted_data_by_emp_couple
 
 
+def validate_line(line):
+    line_str = (re.sub("\n", "", line)).split(', ')
+    if (len(line_str) == 4) and any(line_str):
+        line_str[2] = convert_date(line_str[2])
+        line_str[3] = convert_date(line_str[3])
+        if line_str[2] > line_str[3]:
+            line_str[2], line_str[3] = line_str[3], line_str[2]
+
+        return line_str
+    else:
+        return False
+
+
 def convert_date(date_string):
-    date = datetime.datetime.strptime(date_string, ('%Y-%m-%d'))
+    monthsLong = {
+        'january':'01',
+        'february':'02',
+        'march':'03',
+        'april':'04',
+        'may':'05',
+        'june':'06',
+        'july':'07',
+        'august':'08',
+        'september':'09',
+        'october':'10',
+        'november':'11',
+        'december':'12'
+        }
+    monthsShort = {
+        'jan':'01',
+        'feb':'02',
+        'mar':'03',
+        'apr':'04',
+        'may':'05',
+        'jun':'06',
+        'jul':'07',
+        'aug':'08',
+        'sep':'09',
+        'oct':'10',
+        'nov':'11',
+        'dec':'12'
+        }
+    date_now = (datetime.datetime.now()).strftime('%Y-%m-%d')
+    date_str = date_now
+    if date_string.lower() == 'NULL'.lower():
+            date_str = date_now
+    else:
+        date_str_arr = re.split('[-/.: ]', date_string)
+        if len(date_str_arr) == 3:
+                if len(date_str_arr[2]) == 4:
+                    date_str_arr[0], date_str_arr[2] = date_str_arr[2], date_str_arr[0]
+                lm = date_str_arr[1].lower()
+                if date_str_arr[1] not in monthsLong.values():
+                    if lm in monthsLong:
+                        date_str_arr[1] = monthsLong[lm]
+                    elif lm in monthsShort:
+                        date_str_arr[1] = monthsShort[lm]
+                date_str = "-".join(date_str_arr)
+
+    date = datetime.datetime.strptime(date_str, ('%Y-%m-%d'))
     return date
 
 
