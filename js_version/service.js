@@ -1,4 +1,4 @@
-function get_file(){
+function getFile(){
   const status = document.getElementById('status');
   const output = document.getElementById('output');
   document.getElementById('dataFile').addEventListener('change', function()
@@ -23,9 +23,8 @@ function get_file(){
       df.onload = (e) => {
         var f = e.target.result;
         var lines = (f.split(/[\r\n]+/g)).filter(Boolean);
-        procesing_data = process_data(lines);
-        console.log(procesing_data);
-        output.innerHTML = data_table(procesing_data);
+        procesingData = processData(lines);
+        output.innerHTML = dataTable(procesingData);
         status.textContent = '';
       }
       df.readAsText(file);

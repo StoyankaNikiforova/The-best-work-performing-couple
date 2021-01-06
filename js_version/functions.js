@@ -1,35 +1,35 @@
-function process_data(data_lines){
-    var sorted_data_by_emp_couple = [];
-    var len_data = data_lines.length;
-    for(var i=0; i< len_data; i++){
-      for(var j=i+1; j < len_data; j++){
-          emp = data_lines[i].split(", ");
-          current_emp = data_lines[j].split(", ");
-          emp_start = convert_date(emp[2]);
-          emp_end = convert_date(emp[3]);
-          current_emp_start = convert_date(current_emp[2]);
-          current_emp_end = convert_date(current_emp[3]);
-          if ((emp[1] == current_emp[1]) && (is_there_common_period(emp_start, emp_end, current_emp_start, current_emp_end))){
-               var period = common_period(emp_start, emp_end, current_emp_start, current_emp_end);
-               var common_days = get_days(period);
-               sorted_data_by_emp_couple.push({'Employee ID #1': emp[0],
-                'Employee ID #2':  current_emp[0],
+function processData(dataLines){
+    var sortedDataByEmpCouple = [];
+    var lenData = dataLines.length;
+    for(var i=0; i< lenData; i++){
+      for(var j=i+1; j < lenData; j++){
+          emp = dataLines[i].split(", ");
+          currentEmp = dataLines[j].split(", ");
+          empStart = convertDate(emp[2]);
+          empEnd = convertDate(emp[3]);
+          currentEmpStart = convertDate(currentEmp[2]);
+          currentEmpEnd = convertDate(currentEmp[3]);
+          if ((emp[1] == currentEmp[1]) && (isThereCommonPeriod(empStart, empEnd, currentEmpStart, currentEmpEnd))){
+               var period = commonPeriod(empStart, empEnd, currentEmpStart, currentEmpEnd);
+               var commonDays = getDays(period);
+               sortedDataByEmpCouple.push({'Employee ID #1': emp[0],
+                'Employee ID #2':  currentEmp[0],
                 'ProjectID':  emp[1],
-                'Days worked': common_days
+                'Days worked': commonDays
               });
       }}
     }
 
-    return sorted_data_by_emp_couple;
+    return sortedDataByEmpCouple;
 }
 
-function get_total_days_by_coples(data){
-  var couples_days = [];
+function getTotalDaysByCoples(data){
+  var couplesDays = [];
   employee1 = data[0]['Employee ID #1'];
   employee2 = data[0]['Employee ID #2'];
   days_ = data[0]['Days worked'];
   project =  data[0]['ProjectID'];
-  couples_days.push({"emps":[employee1, employee2], "days": days_, "projects":[project]});
+  couplesDays.push({"emps":[employee1, employee2], "days": days_, "projects":[project]});
   for(cople=1; cople < data.length; cople++){
     emp1 = data[cople]['Employee ID #1'];
     emp2 = data[cople]['Employee ID #2'];
@@ -37,90 +37,90 @@ function get_total_days_by_coples(data){
     projectID = data[cople]['ProjectID'];
     var coupleExist = false;
     var currentCouple;
-    for(copleIn=0; copleIn < couples_days.length; copleIn++){
-      emps = couples_days[copleIn]["emps"];
+    for(copleIn=0; copleIn < couplesDays.length; copleIn++){
+      emps = couplesDays[copleIn]["emps"];
       if(emps.includes(emp1) && emps.includes(emp2)){
         coupleExist = true;
-        currentCouple = couples_days[copleIn];
+        currentCouple = couplesDays[copleIn];
       }
     }
     if(coupleExist){
       currentCouple["days"]+= daysIn;
       currentCouple["projects"].push(projectID);
     }else{
-      couples_days.push({"emps": [emp1, emp2], "days": daysIn, "projects":[projectID]});
+      couplesDays.push({"emps": [emp1, emp2], "days": daysIn, "projects":[projectID]});
     }
 
   }
-  return couples_days;
+  return couplesDays;
 }
 
-function convert_date(date_string){
+function convertDate(dateString){
     var date;
-    if (date_string == "NULL"){
-        date = replase_null(date_string);
+    if (dateString == "NULL"){
+        date = replaseNull(dateString);
     }else{
-      var date_arr = date_string.split("-");
-      date = new Date(date_arr[0], date_arr[1]-1, date_arr[2]);
+      var dateArr = dateString.split("-");
+      date = new Date(dateArr[0], dateArr[1]-1, dateArr[2]);
     }
     return date;
 }
 
 
-function replase_null(date){
+function replaseNull(date){
   var timeElapsed = Date.now();
-  var date_today = new Date(timeElapsed);
-  var date_r = new Date(date_today);
-  return date_r;
+  var dateToday = new Date(timeElapsed);
+  var dateR = new Date(dateToday);
+  return dateR;
 }
 
-function is_date_in_period(date_first, date_second, date){
+function isDateInPeriod(dateFirst, dateSecond, date){
     var res = false;
-    if ((date >= date_first) && (date <= date_second)){
+    if ((date >= dateFirst) && (date <= dateSecond)){
         res = true;
       }
     return res;
   }
 
 
-function get_days(date_list){
-    days = (parseInt((date_list[1].getTime() - date_list[0].getTime()) / (1000 * 60 * 60 * 24), 10));
+function getDays(dateList){
+    days = (parseInt((dateList[1].getTime() - dateList[0].getTime()) / (1000 * 60 * 60 * 24), 10));
     return days;
   }
 
 
-function is_there_common_period(date_first_start, date_first_end, date_second_start, date_second_end){
+function isThereCommonPeriod(dateFirstStart, dateFirstEnd, dateSecondStart, dateSecondEnd){
      var res = false;
-    if (is_date_in_period(date_first_start, date_first_end, date_second_start)){
+    if (isDateInPeriod(dateFirstStart, dateFirstEnd, dateSecondStart)){
         res = true;
       }
-    if (is_date_in_period(date_second_start, date_second_end, date_first_start)){
+    if (isDateInPeriod(dateSecondStart, dateSecondEnd, dateFirstStart)){
         res = true
       }
 
     return res
 }
 
-function common_period(date_first_start, date_first_end, date_second_start, date_second_end){
-    var start_period = date_first_start;
-    var end_period = date_second_start;
-    if (is_date_in_period(date_first_start, date_first_end, date_second_start)){
-      start_period = date_second_start;
+function commonPeriod(dateFirstStart, dateFirstEnd, dateSecondStart, dateSecondEnd){
+    var startPeriod = dateFirstStart;
+    var endPeriod = dateSecondStart;
+    if (isDateInPeriod(dateFirstStart, dateFirstEnd, dateSecondStart)){
+      startPeriod = dateSecondStart;
     }
-    if (is_date_in_period(date_second_start, date_second_end, date_first_start)){
-        start_period = date_first_start;
+    if (isDateInPeriod(dateSecondStart, dateSecondEnd, dateFirstStart)){
+        startPeriod = dateFirstStart;
       }
 
-    if(date_second_end > date_first_end){
-        end_period = date_second_end;
+    if(dateSecondEnd > dateFirstEnd){
+        endPeriod = dateSecondEnd;
       }else{
-        end_period = date_first_end;
+        endPeriod = dateFirstEnd;
       }
-    return new Array(start_period, end_period);
+    return new Array(startPeriod, endPeriod);
 }
 
-function data_table(procesing_data){
-  var str_table = '<table class="table">\
+function dataTable(procesingData){
+  var strTable = '<table class="table">\
                         <thead class="thead-dark">\
                           <tr>\
                             <th scope="col">#</th>\
@@ -131,45 +131,46 @@ function data_table(procesing_data){
                           </tr>\
                         </thead>\
                         <tbody>'
-      var len_data = procesing_data.length;
-      for(var i=0; i< len_data; i++){
-                str_table += '<tr class="tb_row">\
+      var lenData = procesingData.length;
+      for(var i=0; i< lenData; i++){
+                strTable += '<tr class="tbRow">\
                             <th scope="row">'+(i+1)+'</th>\
-                            <td>'+procesing_data[i]['Employee ID #1']+'</td>\
-                            <td>'+procesing_data[i]['Employee ID #2']+'</td>\
-                            <td>'+procesing_data[i]['ProjectID']+'</td>\
-                            <td>'+procesing_data[i]['Days worked']+'</td>\
+                            <td>'+procesingData[i]['Employee ID #1']+'</td>\
+                            <td>'+procesingData[i]['Employee ID #2']+'</td>\
+                            <td>'+procesingData[i]['ProjectID']+'</td>\
+                            <td>'+procesingData[i]['Days worked']+'</td>\
                           </tr>'
     }
-    var total_days = get_total_days_by_coples(procesing_data);
-    var best_couples = [];
-    var max_days = -1;
-    for(var i=0; i < total_days.length; i++){
-          if(total_days[i]['days'] > max_days){
-            max_days = total_days[i]['days'];
+    var totalDays = getTotalDaysByCoples(procesingData);
+    console.log(totalDays);
+    var bestCouples = [];
+    var maxDays = -1;
+    for(var i=0; i < totalDays.length; i++){
+          if(totalDays[i]['days'] > maxDays){
+            maxDays = totalDays[i]['days'];
           }
       }
-    for(var i=0; i< total_days.length; i++){
-          if(total_days[i]['days'] == max_days){
-            best_couples.push({"couple": [total_days[i]['emps'][0], total_days[i]['emps'][1]], "projects":total_days[i]['projects']})
+    for(var i=0; i< totalDays.length; i++){
+          if(totalDays[i]['days'] == maxDays){
+            bestCouples.push({"couple": [totalDays[i]['emps'][0], totalDays[i]['emps'][1]], "projects":totalDays[i]['projects']})
           }
         }
 
-    str_table += '<tr class="bg-primary result">\
+    strTable += '<tr class="bg-primary result">\
                 <td colspan="4">The best performing couple(s) is(are):</td>\
                 <td>Total days</td>\
               </tr>'
-      for(var i=0; i< best_couples.length; i++){
-              str_table += '<tr class="tb_row">\
+      for(var i=0; i< bestCouples.length; i++){
+              strTable += '<tr class="tbRow">\
                           <th scope="row">'+(i+1)+'</th>\
-                          <td>'+best_couples[i]['couple'][0]+'</td>\
-                          <td>'+best_couples[i]['couple'][1]+'</td>\
-                          <td>'+(best_couples[i]['projects']).toString()+'</td>\
-                          <td>'+max_days+'</td>\
+                          <td>'+bestCouples[i]['couple'][0]+'</td>\
+                          <td>'+bestCouples[i]['couple'][1]+'</td>\
+                          <td>'+(bestCouples[i]['projects']).toString()+'</td>\
+                          <td>'+maxDays+'</td>\
                         </tr>'
           }
-    str_table += '</tbody>\
+    strTable += '</tbody>\
             </table>'
 
-  return str_table;
+  return strTable;
 }
